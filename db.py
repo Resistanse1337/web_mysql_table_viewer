@@ -5,14 +5,16 @@ from datetime import datetime
 from random import randint, choice
 from mysql.connector import connect
 
+from settings import *
+
 
 class UsersDb:
     def __init__(self):
-        self.host = "127.0.0.1"
-        self.user = "root"
-        self.password = "3103"
-        self.db_name = "users_data"
-        self.table_name = "users"
+        self.host = HOST
+        self.user = USER
+        self.password = PASSWORD
+        self.db_name = DB_NAME
+        self.table_name = TABLE_NAME
 
         self.one_page = 50
 
