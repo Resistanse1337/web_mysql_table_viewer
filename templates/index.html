@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Index</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.js"></script>
+    <style>
+        td, table{
+            border: 1px solid black;
+        }
+    </style>
+</head>
+<body>
+    Сортировка по:
+    <select class="sort_by refresh">
+        {% for fieldname in fieldnames %}
+            {% if fieldname != "date" %}
+                <option value="{{ fieldname }} DESC">Убыванию {{ fieldname }}</option>
+                <option value="{{ fieldname }} ASC">Возрастанию {{ fieldname }}</option>
+            {% endif %}
+        {% endfor %}
+    </select>
+
+    <br>
+
+    Условие:
+    <select class="column_to_where refresh">
+        {% for fieldname in fieldnames %}
+            {% if fieldname != "date" %}
+                <option value="{{ fieldname }}">{{ fieldname }}</option>
+            {% endif %}
+        {% endfor %}
+    </select>
+
+    <select class="where_condition refresh">
+        {% for condition in conditions %}
+            <option value="{{ condition }}">{{ condition }}</option>
+        {% endfor %}
+    </select>
+
+    <input type="text" class="where_value refresh" value="Z">
+
+    <br>
+
+    <span class="total_pages"></span>
+
+    <br>
+
+    Перейти к <input type="number" step="1" value="1" class="page_num refresh"> странице
+
+    <table class="main_table">
+        <tr>
+            {% for fieldname in fieldnames %}
+                <td>{{ fieldname }}</td>
+            {% endfor %}
+        </tr>
+    </table>
+
+    <script>
+        function refresh_table(first=true){
+            var sort_by = $(".sort_by").val();
+
+            var column_to_order = null;
+            var order_value = null;
+            var column_to_where = $(".column_to_where").val();
+            var where_condition = $(".where_condition").val();
+            var where_value = $(".where_value").val();
+            var page_num = $(".page_num").val();
+
+            var values = sort_by.split(" ");
+            column_to_order = values[0];
+            order_value = values[1];
+
+            if(where_condition == "LIKE"){
+                where_value = "%" + where_value + "%";
+            }
+
+            $.ajax({
+                url: "http://localhost:8000/get_data",
+                dataType: "json",
+                method: "POST",
+                contentType: "application/json",
+                data: JSON.stringify({"column_to_order": column_to_order, "order_value": order_value, "column_to_where": column_to_where,
+                "where_condition": where_condition, "where_value": where_value, "page_num": page_num}),
+                success: function(data){
+                    $(".total_pages").html("Всего страниц: " + data["total_pages"]);
+                    //$(".total_pages").remove();
+
+                    $(".appended").remove();
+
+                    for(user of data["users"]){
+                        $(".main_table").append(
+                        `<tr class="appended">
+                            <td>${user[0]}</td>
+                            <td>${user[1]}</td>
+                            <td>${user[2]}</td>
+                            <td>${user[3]}</td>
+                        </tr>`
+                        );
+                    }
+                }
+            });
+        }
+
+        refresh_table();
+        $(".get_data").click(function(){refresh_table();});
+        $(".refresh").on("change", function(){
+            refresh_table();
+        });
+
+    </script>
+</body>
+</html>
